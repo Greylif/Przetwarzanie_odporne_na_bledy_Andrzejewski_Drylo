@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 public class Zad1 {
 
   private static final Logger LOGGER = Logger.getLogger(Zad1.class.getName());
-  private static final String ALGORITHM = "AES";
+  private static final String ALGORITHM = "AES/GCM/NoPadding";
   private static final int KEY_SIZE = 128;
 
   public static class Firma implements Serializable {
