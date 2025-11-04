@@ -15,13 +15,13 @@ public class ExternalApiController {
   private RestTemplate restTemplate;
 
   @RequestMapping("favicon.ico")
-  public void favicon() {
-  }
+  public void favicon() {}
 
   @GetMapping("/posts")
-  public ResponseEntity<model[]> getPosts(@RequestParam("userId") String userId) {
-
-    String url = "https://jsonplaceholder.typicode.com/posts";
+  public ResponseEntity<String> getPosts(
+      @RequestParam("userId") String userId,
+      @RequestParam("url") String url
+  ) {
 
     UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
         .queryParam("userId", userId);
@@ -39,6 +39,15 @@ public class ExternalApiController {
     );
 
     System.out.println("External API Response: " + response.getStatusCode());
-    return response;
+
+    model[] posts = response.getBody();
+
+    StringBuilder Bodies = new StringBuilder();
+    for (model post : posts) {
+      Bodies.append(post.getId()).append("\n");
+      Bodies.append(post.getBody()).append("\n\n");
+    }
+
+    return ResponseEntity.ok(Bodies.toString());
   }
 }

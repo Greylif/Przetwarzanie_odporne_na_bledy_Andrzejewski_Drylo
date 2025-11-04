@@ -19,7 +19,7 @@ public class RequestLoggingFilter implements Filter {
     ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper((HttpServletRequest) request);
     ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper((HttpServletResponse) response);
 
-    System.out.println("===== REQUEST =====");
+    System.out.println("REQUEST");
     System.out.println("URL: " + wrappedRequest.getRequestURL());
     System.out.println("Method: " + wrappedRequest.getMethod());
     System.out.println("Query: " + wrappedRequest.getQueryString());
@@ -28,7 +28,7 @@ public class RequestLoggingFilter implements Filter {
 
     String responseBody = new String(wrappedResponse.getContentAsByteArray(), response.getCharacterEncoding());
 
-    System.out.println("===== RESPONSE =====");
+    System.out.println("RESPONSE");
     System.out.println("Status: " + wrappedResponse.getStatus());
     System.out.println("Body: " + responseBody);
 
