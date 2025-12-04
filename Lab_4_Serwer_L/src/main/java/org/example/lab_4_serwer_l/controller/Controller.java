@@ -21,7 +21,7 @@ public class Controller {
   @GetMapping("/handle")
   public String handle() {
     state.incrementCounter();
-    return "Backend response. Requests served: " + state.getCounter();
+    return "Requests: " + state.getCounter();
   }
 
 

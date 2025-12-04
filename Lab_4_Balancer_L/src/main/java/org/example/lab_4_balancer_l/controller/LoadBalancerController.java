@@ -33,15 +33,21 @@ public class LoadBalancerController {
   }
 
   @GetMapping("/status")
-  public List<Response> status() {
-    return wrr.getServers().stream()
-        .map(s -> new Response(
-            s.getName(),
-            s.getUrl(),
-            s.getWeight(),
-            s.getCounter()
-        )).toList();
+  public String status() {
+    StringBuilder sb = new StringBuilder();
+
+    wrr.getServers().forEach(s -> {
+      sb.append(String.format(
+          "Nazwa: %s, Waga: %d, Obsłużono: %d;  ",
+          s.getName(),
+          s.getWeight(),
+          s.getCounter()
+      ));
+    });
+
+    return sb.toString();
   }
+
 
 
   @PostMapping("/weight/{name}/{value}")

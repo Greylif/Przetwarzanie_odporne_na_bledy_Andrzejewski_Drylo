@@ -25,36 +25,36 @@ public class Main extends Application {
 
   @Override
   public void start(Stage primaryStage) {
-    primaryStage.setTitle("Load Balancer Control Panel - JavaFX");
+    primaryStage.setTitle("Load Balancer");
 
     VBox root = new VBox(15);
     root.setPadding(new Insets(20));
     root.setAlignment(Pos.TOP_CENTER);
 
-    Button btnRequest = new Button("Send /lb/request");
-    Button btnStatus = new Button("Send /lb/status");
-    Button btnUpdateWeight = new Button("Update weight");
+    Button btnRequest = new Button("Request");
+    Button btnStatus = new Button("Status");
+    Button btnUpdateWeight = new Button("Aktualizacja Wagi");
     btnRequest.setPrefWidth(200);
     btnStatus.setPrefWidth(200);
     btnUpdateWeight.setPrefWidth(200);
 
     weightNameField = new TextField("S1");
     weightValueField = new TextField("10");
-    weightNameField.setPromptText("Server name (e.g. S1)");
-    weightValueField.setPromptText("Weight value");
+    weightNameField.setPromptText("Nazwa serwera");
+    weightValueField.setPromptText("Waga");
 
     HBox weightBox = new HBox(10, weightNameField, weightValueField, btnUpdateWeight);
     weightBox.setAlignment(Pos.CENTER);
 
-    Label autoLabel = new Label("Auto Requests:");
+    Label autoLabel = new Label("Requesty:");
 
     autoCountField = new TextField("100");
     autoDelayField = new TextField("10");
 
-    autoCountField.setPromptText("Number of requests");
-    autoDelayField.setPromptText("Delay (ms)");
+    autoCountField.setPromptText("Ilosc requestow");
+    autoDelayField.setPromptText("Opoznienie");
 
-    Button btnAuto = new Button("Send N Requests");
+    Button btnAuto = new Button("Wyslij N requestow");
     btnAuto.setPrefWidth(200);
 
     HBox autoBox = new HBox(10, autoCountField, autoDelayField, btnAuto);
@@ -75,12 +75,12 @@ public class Main extends Application {
 
     btnRequest.setOnAction(e -> {
       String response = sendGet("http://localhost:8000/lb/request");
-      outputArea.appendText("\n/lb/request → " + response + "\n");
+      outputArea.appendText("\n/lb/request: " + response + "\n");
     });
 
     btnStatus.setOnAction(e -> {
       String response = sendGet("http://localhost:8000/lb/status");
-      outputArea.appendText("\n/lb/status → " + response + "\n");
+      outputArea.appendText("\n/lb/status: " + response + "\n");
     });
 
     btnUpdateWeight.setOnAction(e -> {
@@ -88,7 +88,7 @@ public class Main extends Application {
       String value = weightValueField.getText().trim();
       String url = "http://localhost:8000/lb/weight/" + name + "/" + value;
       String response = sendPost(url);
-      outputArea.appendText("\n/lb/weight → " + response + "\n");
+      outputArea.appendText("\n/lb/weight: " + response + "\n");
     });
 
     btnAuto.setOnAction(e -> startAutoRequests());
