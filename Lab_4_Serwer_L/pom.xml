@@ -9,11 +9,11 @@
     <version>4.0.0</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
-  <groupId>com.example</groupId>
-  <artifactId>Lab_4_Serwer</artifactId>
+  <groupId>org.example</groupId>
+  <artifactId>Lab_4_Serwer_L</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>Lab_4_Serwer</name>
-  <description>Lab_4_Serwer</description>
+  <name>Lab_4_Serwer_L</name>
+  <description>Lab_4_Serwer_L</description>
   <url/>
   <licenses>
     <license/>
@@ -53,9 +53,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.11.0</version>
         <configuration>
-          <release>17</release>
           <annotationProcessorPaths>
             <path>
               <groupId>org.projectlombok</groupId>

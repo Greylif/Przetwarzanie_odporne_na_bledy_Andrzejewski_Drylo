@@ -1,6 +1,6 @@
-package com.example.lab_4.service;
+package org.example.lab_4_balancer_l.service;
 
-import com.example.lab_4.model.Serwer;
+import org.example.lab_4_balancer_l.model.Serwer;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -44,7 +44,7 @@ public class WeightedRoundRobin {
 
   public void updateWeight(String name, int weight) {
     serwers.stream()
-        .filter(s -> s.getname().equals(name))
+        .filter(s -> s.getName().equals(name))
         .findFirst()
         .ifPresent(s -> s.setWeight(weight));
   }
