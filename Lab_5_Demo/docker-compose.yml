@@ -1,0 +1,119 @@
+version: '3.8'
+
+# ===========================================
+# Docker Compose - Monitoring Stack
+# Prometheus + Grafana + Spring Boot
+# ===========================================
+
+services:
+  # -------------------------------------------
+  # Aplikacja Spring Boot z wlasnymi metrykami
+  # Port: 8080
+  # Metryki: /actuator/prometheus
+  # -------------------------------------------
+  spring-app:
+    build:
+      context: ./spring-app
+      dockerfile: Dockerfile
+    container_name: spring-app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus,metrics
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      - "prometheus.scrape=true"
+      - "prometheus.port=8080"
+      - "prometheus.path=/actuator/prometheus"
+
+  # -------------------------------------------
+  # Prometheus - zbieranie i przechowywanie metryk
+  # Port: 9090
+  # UI: http://localhost:9090
+  # -------------------------------------------
+  prometheus:
+    image: prom/prometheus:v3.8.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'    # Przechowuj dane przez 15 dni
+      - '--web.enable-lifecycle'                # Pozwol na przeladowanie konfiguracji
+      - '--web.enable-admin-api'                # Wlacz API administracyjne
+    networks:
+      - monitoring
+    depends_on:
+      - spring-app
+    restart: unless-stopped
+
+  # -------------------------------------------
+  # Grafana - wizualizacja metryk
+  # Port: 3000
+  # Login: admin / admin123
+  # -------------------------------------------
+  grafana:
+    image: grafana/grafana:12.3.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-piechart-panel
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # -------------------------------------------
+  # Node Exporter - metryki systemu operacyjnego
+  # Port: 9100
+  # UWAGA: Na Windows moze nie dzialac poprawnie
+  # -------------------------------------------
+  node-exporter:
+    image: prom/node-exporter:v1.10.2
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+# Wspolna siec dla wszystkich kontenerow
+networks:
+  monitoring:
+    driver: bridge
+
+# Wolumeny do przechowywania danych
+volumes:
+  prometheus_data:    # Dane metryk Prometheus
+  grafana_data:       # Konfiguracja Grafana, uzytkownicy, dashboardy

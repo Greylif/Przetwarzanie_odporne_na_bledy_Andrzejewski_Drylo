@@ -1,0 +1,58 @@
+# ===========================================
+# Konfiguracja Prometheus
+# ===========================================
+
+global:
+  scrape_interval: 15s          # Jak czesto zbierac metryki
+  evaluation_interval: 15s      # Jak czesto ewaluowac reguly alertow
+  external_labels:
+    monitor: 'monitoring-demo'
+    environment: 'development'
+
+# Pliki z regulami alertow
+rule_files:
+  - /etc/prometheus/alert.rules.yml
+
+# Konfiguracja zrodel metryk (scrape targets)
+scrape_configs:
+  # -------------------------------------------
+  # Prometheus - monitorowanie samego siebie
+  # -------------------------------------------
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+          env: 'docker'
+
+  # -------------------------------------------
+  # Aplikacja Spring Boot
+  # Zbieramy metryki co 5 sekund z endpointu /actuator/prometheus
+  # -------------------------------------------
+  - job_name: 'spring-boot-app'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s         # Czestsze zbieranie dla aplikacji
+    scrape_timeout: 5s          # Timeout zapytania
+    static_configs:
+      - targets: ['spring-app:8080']
+        labels:
+          application: 'monitoring-demo'
+          service: 'spring-app'
+          env: 'docker'
+    # Relabeling - wyciagamy nazwe hosta z adresu
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+):\d+'
+        replacement: '${1}'
+
+  # -------------------------------------------
+  # Node Exporter - metryki systemu operacyjnego
+  # CPU, RAM, dysk, siec
+  # -------------------------------------------
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+          env: 'docker'

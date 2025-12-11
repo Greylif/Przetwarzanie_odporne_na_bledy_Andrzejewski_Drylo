@@ -44,7 +44,7 @@ public class WeightedRoundRobin {
 
   public void updateWeight(String name, int weight) {
     serwers.stream()
-        .filter(s -> s.getname().equals(name))
+        .filter(s -> s.getName().equals(name))
         .findFirst()
         .ifPresent(s -> s.setWeight(weight));
   }

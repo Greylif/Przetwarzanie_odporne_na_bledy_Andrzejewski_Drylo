@@ -1,0 +1,17 @@
+# ===========================================
+# Konfiguracja automatycznego importu dashboardow Grafana
+# ===========================================
+
+apiVersion: 1
+
+providers:
+  - name: 'default'
+    orgId: 1
+    folder: 'Monitoring Demo'           # Nazwa folderu w Grafanie
+    folderUid: 'monitoring-demo'
+    type: file
+    disableDeletion: false              # Pozwol na usuwanie dashboardow
+    updateIntervalSeconds: 30           # Sprawdzaj zmiany co 30 sekund
+    allowUiUpdates: true                # Pozwol na edycje w UI
+    options:
+      path: /var/lib/grafana/dashboards # Sciezka do plikow JSON

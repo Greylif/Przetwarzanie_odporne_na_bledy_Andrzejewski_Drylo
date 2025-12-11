@@ -1,0 +1,104 @@
+# ===========================================
+# Reguly alertow Prometheus
+# ===========================================
+
+groups:
+  # -------------------------------------------
+  # Alerty dla aplikacji Spring Boot
+  # -------------------------------------------
+  - name: alerty-spring-boot
+    rules:
+      # Aplikacja nie odpowiada przez 1 minute
+      - alert: AplikacjaNiedostepna
+        expr: up{job="spring-boot-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Aplikacja Spring Boot nie odpowiada"
+          description: "Instancja {{ $labels.instance }} nie odpowiada od ponad 1 minuty."
+
+      # Wysoki czas odpowiedzi HTTP (95 percentyl > 1 sekunda)
+      - alert: WysokieOpoznienieHTTP
+        expr: histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job="spring-boot-app"}[5m])) by (le, uri)) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Wykryto wysokie opoznienie HTTP"
+          description: "95-ty percentyl dla {{ $labels.uri }} przekracza 1s (aktualnie: {{ $value }}s)"
+
+      # Wysoki wskaznik bledow (> 5%)
+      - alert: WysokiWskaznikBledow
+        expr: sum(rate(http_server_requests_seconds_count{job="spring-boot-app", status=~"5.."}[5m])) / sum(rate(http_server_requests_seconds_count{job="spring-boot-app"}[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Wysoki wskaznik bledow HTTP"
+          description: "Wskaznik bledow przekracza 5% (aktualnie: {{ $value | humanizePercentage }})"
+
+      # Niski poziom pamieci sterty JVM (> 90%)
+      - alert: NiskaPamiecSterty
+        expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Niski poziom pamieci sterty JVM"
+          description: "Uzycie pamieci sterty przekracza 90% (aktualnie: {{ $value | humanizePercentage }})"
+
+      # Duzo aktywnych uzytkownikow (> 1000)
+      - alert: DuzoAktywnychUzytkownikow
+        expr: app_active_users > 1000
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "Duza liczba aktywnych uzytkownikow"
+          description: "Liczba aktywnych uzytkownikow: {{ $value }}"
+
+      # Dluga kolejka zadan (> 100 przez 10 minut)
+      - alert: DlugaKolejkaZadan
+        expr: app_task_queue_size > 100
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kolejka zadan sie wydluza"
+          description: "Rozmiar kolejki: {{ $value }}"
+
+  # -------------------------------------------
+  # Alerty dla Node Exporter (metryki systemowe)
+  # -------------------------------------------
+  - name: alerty-system
+    rules:
+      # Wysokie uzycie CPU (> 80%)
+      - alert: WysokieUzycieCPU
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Wysokie uzycie CPU na {{ $labels.instance }}"
+          description: "Uzycie CPU przekracza 80% (aktualnie: {{ $value }}%)"
+
+      # Wysokie uzycie pamieci RAM (> 85%)
+      - alert: WysokieUzycieRAM
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Wysokie uzycie pamieci na {{ $labels.instance }}"
+          description: "Uzycie pamieci przekracza 85% (aktualnie: {{ $value }}%)"
+
+      # Wysokie uzycie dysku (> 85%)
+      - alert: WysokieUzycieDysku
+        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Wysokie uzycie dysku na {{ $labels.instance }}"
+          description: "Uzycie dysku przekracza 85% (aktualnie: {{ $value }}%)"
